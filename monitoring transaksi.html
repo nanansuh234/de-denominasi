@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MONITOR V4 (EXTENDED)</title>
+    <title>MONITOR V4.1 (SECURE AUDIT)</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --gold: #d4af37; --dark: #0f0f0f; --panel: #1a1a1a; --text: #eee; --accent: #00d2ff; --flow: #00ffaa; }
+        :root { --gold: #d4af37; --dark: #0f0f0f; --panel: #1a1a1a; --text: #eee; --accent: #00d2ff; --flow: #00ffaa; --err: #ff4444; }
         body { background: var(--dark); color: var(--text); font-family: 'Segoe UI', monospace; margin: 0; padding: 15px; padding-bottom: 50px; user-select: none; }
         
         .header { border-bottom: 2px solid var(--gold); padding-bottom: 10px; margin-bottom: 15px; text-align: center; }
@@ -18,18 +18,21 @@
         .live-badge { background: #004400; color: #00ff00; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #00ff00; display: inline-block; margin-top: 5px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* KPI */
-        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .card { background: var(--panel); border: 1px solid #333; padding: 12px; border-radius: 8px; text-align: center; }
-        .card-title { color: #888; font-size: 0.6rem; margin-bottom: 2px; text-transform: uppercase; }
-        .card-val { font-size: 1.2rem; font-weight: bold; color: var(--gold); }
+        /* KPI - UPDATED TO 3 COLUMNS */
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .card { background: var(--panel); border: 1px solid #333; padding: 10px; border-radius: 8px; text-align: center; display:flex; flex-direction:column; justify-content:center; }
+        .card-title { color: #888; font-size: 0.55rem; margin-bottom: 2px; text-transform: uppercase; }
+        .card-val { font-size: 1rem; font-weight: bold; color: var(--gold); }
         
-        /* LOG TRAFFIC (CCTV) - DIPERLUAS */
+        .card-err { border-color: var(--err); background: rgba(50,0,0,0.3); }
+        .card-err .card-val { color: var(--err); }
+
+        /* LOG TRAFFIC (CCTV) */
         .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .log-container { 
             background: #000; border: 1px solid var(--flow); border-radius: 8px; 
-            height: 250px; /* Lebih tinggi biar muat banyak */
-            overflow-y: auto; /* Bisa discroll */
+            height: 250px; 
+            overflow-y: auto; 
             padding: 8px; font-size: 0.75rem; margin-bottom: 15px; position: relative; 
         }
         .log-item { border-bottom: 1px solid #222; padding: 5px 0; display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.3s ease-out; }
@@ -39,6 +42,9 @@
         .log-val { color: var(--flow); font-weight: bold; }
         .arrow { color: #666; margin: 0 3px; }
         .coin-ref { font-size: 0.6rem; color: #444; margin-left: 5px; }
+
+        .log-item.fake-trx { background: rgba(50,0,0,0.5); border-bottom: 1px solid var(--err); }
+        .log-item.fake-trx .log-val { color: var(--err); text-decoration: line-through; }
 
         /* WALLET TABLE */
         .panel-box { margin-top: 15px; border-top: 1px dashed #333; padding-top: 10px; }
@@ -59,7 +65,7 @@
 <body>
 
     <div class="header">
-        <h2>MONITOR V4 (EXTENDED)</h2>
+        <h2>MONITOR V4.1 (SECURE AUDIT)</h2>
         <div class="live-badge">● CCTV AKTIF</div>
     </div>
 
@@ -79,8 +85,12 @@
 
     <div class="kpi-grid">
         <div class="card">
-            <div class="card-title">TOTAL BEREDAR</div>
+            <div class="card-title">TOTAL BEREDAR (ASLI)</div>
             <div class="card-val" id="totalSupply">...</div>
+        </div>
+        <div class="card card-err">
+            <div class="card-title">⚠️ TOKEN PALSU</div>
+            <div class="card-val" id="fakeTokenDisplay">0</div>
         </div>
         <div class="card">
             <div class="card-title">USER AKTIF</div>
@@ -89,7 +99,7 @@
     </div>
 
     <div class="panel-box">
-        <div class="panel-head">SALDO USER</div>
+        <div class="panel-head">SALDO USER (VALIDATED)</div>
         <input type="text" id="searchWallet" class="search-box" placeholder="Cari Nama / ID..." onkeyup="filterWallet()">
         <div style="max-height: 250px; overflow-y: auto;">
             <table id="walletTable">
@@ -126,8 +136,21 @@
     let userMap = {}; 
     let ledgerCache = {}; 
     let walletStats = {};
+    
+    // VARIABLES FOR AUDIT
+    let fakeTokenCount = 0;
+    let fakeTokenValue = 0;
+    
     let loadedCount = 0;
     let sessionTrxCount = 0;
+
+    // --- SMART VALIDATOR ---
+    function isGenuineMint(id) {
+        if (!id) return false;
+        // Strict Regex: Only lowercase hex, 15-32 chars
+        const hexPattern = /^[a-f0-9]{15,32}$/; 
+        return hexPattern.test(id);
+    }
 
     // 1. Ambil Nama User
     db.ref('users').on('value', (snap) => {
@@ -140,17 +163,29 @@
     // 2. MONITORING LEDGER
     const ledgerRef = db.ref(LEDGER_NODE);
 
-    // A. Initial Load
+    // A. Initial Load / Add Token
     ledgerRef.on('child_added', (snapshot) => {
         const coin = snapshot.val();
+        const coinId = snapshot.key;
+        
         if(coin.type !== 'RECEH') return;
 
-        ledgerCache[snapshot.key] = coin;
+        // SIMPAN KE CACHE DENGAN STATUS VALIDASI
+        const isValid = isGenuineMint(coinId);
+        ledgerCache[coinId] = { ...coin, isValid: isValid };
         
         const owner = coin.owner || "UNKNOWN";
         const val = parseInt(coin.val) || 0;
-        if(!walletStats[owner]) walletStats[owner] = 0;
-        walletStats[owner] += val;
+
+        if (isValid) {
+            // HANYA MASUK STATISTIK JIKA VALID
+            if(!walletStats[owner]) walletStats[owner] = 0;
+            walletStats[owner] += val;
+        } else {
+            // JIKA PALSU, MASUK COUNTER PALSU
+            fakeTokenCount++;
+            fakeTokenValue += val;
+        }
 
         loadedCount++;
         if(loadedCount % 50 === 0) {
@@ -168,39 +203,55 @@
         if(oldCoin && newCoin.type === 'RECEH') {
             if(oldCoin.owner !== newCoin.owner) {
                 const amount = parseInt(newCoin.val);
-                
-                // LOG TRANSAKSI
-                logTransaction(oldCoin.owner, newCoin.owner, amount, coinId);
+                const isValid = oldCoin.isValid; // Status validasi tidak berubah saat pindah tangan
 
-                // Update Statistik
-                if(walletStats[oldCoin.owner]) walletStats[oldCoin.owner] -= amount;
-                if(!walletStats[newCoin.owner]) walletStats[newCoin.owner] = 0;
-                walletStats[newCoin.owner] += amount;
+                // LOG TRANSAKSI (CCTV)
+                logTransaction(oldCoin.owner, newCoin.owner, amount, coinId, isValid);
 
-                ledgerCache[coinId] = newCoin;
+                // Update Statistik (HANYA JIKA VALID)
+                if(isValid) {
+                    if(walletStats[oldCoin.owner]) walletStats[oldCoin.owner] -= amount;
+                    if(!walletStats[newCoin.owner]) walletStats[newCoin.owner] = 0;
+                    walletStats[newCoin.owner] += amount;
+                }
+                // Jika palsu, tidak perlu update walletStats, karena tidak pernah masuk walletStats.
+
+                ledgerCache[coinId] = { ...newCoin, isValid: isValid };
                 scheduleUIUpdate();
             }
         } else {
-            ledgerCache[coinId] = newCoin;
+            // Update cache saja jika bukan tipe receh atau data baru
+            const isValid = isGenuineMint(coinId);
+            ledgerCache[coinId] = { ...newCoin, isValid: isValid };
         }
     });
 
-    // C. Burn / Wipe
+    // C. Burn / Wipe / Delete
     ledgerRef.on('child_removed', (snapshot) => {
         const coinId = snapshot.key;
         const oldCoin = ledgerCache[coinId];
+        
         if(oldCoin) {
             const amount = parseInt(oldCoin.val);
-            if(walletStats[oldCoin.owner]) walletStats[oldCoin.owner] -= amount;
+            
+            if(oldCoin.isValid) {
+                // Jika token asli dihapus, kurangi saldo user
+                if(walletStats[oldCoin.owner]) walletStats[oldCoin.owner] -= amount;
+            } else {
+                // Jika token palsu dihapus, kurangi counter palsu
+                fakeTokenCount--;
+                fakeTokenValue -= amount;
+            }
+
             delete ledgerCache[coinId];
             
-            logTransaction(oldCoin.owner, "🔥 BURN/WIPE", amount, coinId);
+            logTransaction(oldCoin.owner, "🔥 BURN/WIPE", amount, coinId, oldCoin.isValid);
             scheduleUIUpdate();
         }
     });
 
-    // --- LOGIC LOGGING BARU ---
-    function logTransaction(from, to, amount, coinId) {
+    // --- LOGIC LOGGING (UPDATED) ---
+    function logTransaction(from, to, amount, coinId, isValid) {
         const container = document.getElementById('trafficLog');
         const emptyMsg = document.getElementById('emptyLog');
         if(emptyMsg) emptyMsg.style.display = 'none';
@@ -212,14 +263,18 @@
         const nameFrom = getName(from);
         const nameTo = getName(to);
 
+        // Styling khusus untuk log token palsu
+        const rowClass = isValid ? '' : 'fake-trx';
+        const displayId = isValid ? `#${coinId.substr(0,4)}` : `⛔ INJECT`;
+
         const html = `
-            <div class="log-item">
+            <div class="log-item ${rowClass}">
                 <div style="flex-grow:1;">
                     <span class="log-time">${time}</span>
                     <span style="color:#aaa">${nameFrom}</span>
                     <span class="arrow">➜</span>
                     <span style="color:#fff">${nameTo}</span>
-                    <span class="coin-ref">#${coinId.substr(0,4)}</span>
+                    <span class="coin-ref">${displayId}</span>
                 </div>
                 <div class="log-val">Rp ${amount.toLocaleString()}</div>
             </div>
@@ -227,7 +282,7 @@
         
         container.insertAdjacentHTML('afterbegin', html);
 
-        // BATAS BUFFER DIPERBESAR JADI 100
+        // Buffer limit
         while(container.children.length > 100) {
             container.lastElementChild.remove();
         }
@@ -256,6 +311,7 @@
         let activeUsers = 0;
         let html = "";
 
+        // Filter: Hanya tampilkan wallet yang punya saldo valid
         let wallets = Object.keys(walletStats).map(key => ({
             id: key, bal: walletStats[key], name: userMap[key] || key
         })).filter(w => w.bal > 0 || w.id === 'MINT'); 
@@ -291,6 +347,10 @@
         
         document.getElementById('totalSupply').innerText = "Rp " + totalMoney.toLocaleString('id-ID');
         document.getElementById('totalUsers').innerText = activeUsers;
+
+        // UPDATE FAKE TOKEN INDICATOR
+        const fakeEl = document.getElementById('fakeTokenDisplay');
+        fakeEl.innerText = `${fakeTokenCount} Token (Rp ${fakeTokenValue.toLocaleString()})`;
     }
 
     function filterWallet() {

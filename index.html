@@ -78,7 +78,7 @@
             gap: 10px;
         }
 
-        /* Tombol Outline (Pelajari) */
+        /* Tombol Outline (Pelajari & Monitor) */
         .btn-outline {
             background: transparent;
             border: 2px solid var(--gold);
@@ -87,6 +87,17 @@
         .btn-outline:hover {
             background: rgba(212, 175, 55, 0.1);
             box-shadow: var(--glow);
+        }
+
+        /* Tombol Khusus Monitor (Aksen Biru/Cyan biar beda) */
+        .btn-monitor {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        .btn-monitor:hover {
+            background: rgba(0, 210, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
         }
 
         /* Tombol Solid (Download) */
@@ -197,8 +208,17 @@
         
         <div class="btn-group">
             <a href="nuswantara-wallet.apk" class="btn-cta btn-solid" download>
-                <span style="font-size:1.2rem;">⬇</span> UNDUH APK (ANDROID)
+                <span style="font-size:1.2rem;">⬇</span> UNDUH APK
             </a>
+            
+            <a href="monitoring wallet dan koin.html" class="btn-cta btn-monitor" target="_blank">
+                <span style="font-size:1.2rem;">📊</span> Monitoring Wallet dan Token
+            </a>
+            
+            <a href="monitoring transaksi.html" class="btn-cta btn-monitor" target="_blank">
+                <span style="font-size:1.2rem;">📊</span> Monitoring Transaksi
+            </a>
+
             <a href="#penjelasan" class="btn-cta btn-outline">
                 Pelajari Konsep
             </a>
@@ -282,6 +302,7 @@
         <div style="margin-bottom:10px; font-weight:bold; color:var(--gold);">NUSWANTARA ECOSYSTEM</div>
         <div>Didukung oleh Teknologi Blockchain Sederhana & Kepercayaan Komunitas.</div>
         <div style="margin-top:10px;">
+            <a href="holderpanel.html" style="color:#666; text-decoration:none; margin-right:15px;">Monitoring Panel</a>
             <a href="#" style="color:#666; text-decoration:none;">Lihat Source Code di GitHub</a>
         </div>
         <div style="margin-top:20px;">&copy; 2024 Gerakan Ekonomi Arus Bawah</div>

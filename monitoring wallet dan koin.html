@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANEL MONITOR NUSWANTARA</title>
+    <title>PANEL MONITOR NUSWANTARA (DETEKTIF MODE)</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --gold: #d4af37; --dark: #0f0f0f; --panel: #1a1a1a; --text: #eee; --accent: #00d2ff; }
+        :root { --gold: #d4af37; --dark: #0f0f0f; --panel: #1a1a1a; --text: #eee; --accent: #00d2ff; --err: #ff4444; }
         body { background: var(--dark); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
         
         .container { max-width: 1200px; margin: 0 auto; }
@@ -20,29 +20,42 @@
         .live-dot { display: inline-block; width: 10px; height: 10px; background: #00ff00; border-radius: 50%; margin-right: 5px; box-shadow: 0 0 10px #00ff00; }
 
         /* KPI CARDS */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .card { background: var(--panel); border: 1px solid #333; padding: 20px; border-radius: 10px; text-align: center; }
-        .card-title { color: #aaa; font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .card-val { font-size: 2.5rem; font-weight: bold; color: var(--gold); }
-        .card-sub { font-size: 0.8rem; color: #666; margin-top: 5px; }
+        .card-title { color: #aaa; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .card-val { font-size: 2rem; font-weight: bold; color: var(--gold); }
+        .card-sub { font-size: 0.7rem; color: #666; margin-top: 5px; }
+
+        /* KPI Error (Fake Token) */
+        .card-err { border-color: var(--err); background: rgba(50,0,0,0.2); }
+        .card-err .card-title { color: var(--err); }
+        .card-err .card-val { color: var(--err); }
 
         /* TABLES & CHARTS LAYOUT */
-        .dashboard-split { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        @media (max-width: 768px) { .dashboard-split { grid-template-columns: 1fr; } }
+        /* Kita ubah jadi 3 kolom biar muat tabel tersangka */
+        .dashboard-split { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media (max-width: 1024px) { .dashboard-split { grid-template-columns: 1fr; } }
 
-        .panel-box { background: var(--panel); border: 1px solid #333; border-radius: 10px; padding: 20px; overflow: hidden; }
-        .panel-head { font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-bottom: 15px; border-bottom: 1px dashed #444; padding-bottom: 10px; }
+        .panel-box { background: var(--panel); border: 1px solid #333; border-radius: 10px; padding: 20px; overflow: hidden; display: flex; flex-direction: column; }
+        .panel-head { font-size: 1.1rem; font-weight: bold; color: var(--accent); margin-bottom: 15px; border-bottom: 1px dashed #444; padding-bottom: 10px; }
+        
+        /* Style Khusus Panel Tersangka */
+        .panel-suspect { border-color: var(--err); background: rgba(20,0,0,0.3); }
+        .panel-suspect .panel-head { color: var(--err); border-bottom-color: var(--err); }
 
         /* TABLE STYLES */
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #444; font-size: 0.9rem; }
-        td { padding: 10px; border-bottom: 1px solid #222; font-family: monospace; font-size: 1rem; }
+        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #444; font-size: 0.8rem; }
+        td { padding: 10px; border-bottom: 1px solid #222; font-family: monospace; font-size: 0.9rem; }
         tr:hover { background: #222; }
         .col-right { text-align: right; }
         .denom-badge { background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #555; }
+        
+        /* Warning Badge */
+        .suspect-badge { background: var(--err); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
 
         /* SEARCH WALLET */
-        .search-box { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; margin-bottom: 10px; }
+        .search-box { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -51,21 +64,28 @@
     <div class="header">
         <div>
             <h1>PANEL ADMIN NUSWANTARA</h1>
-            <div style="color:#666; font-size:0.8rem;">Monitoring Peredaran Uang Receh (De-denominasi)</div>
+            <div style="color:#666; font-size:0.8rem;">Monitoring Peredaran Uang & Deteksi Palsu</div>
         </div>
         <div class="status"><span class="live-dot"></span>LIVE CONNECTION</div>
     </div>
 
     <div class="kpi-grid">
         <div class="card">
-            <div class="card-title">TOTAL UANG BEREDAR</div>
+            <div class="card-title">TOTAL UANG BEREDAR (ASLI)</div>
             <div class="card-val" id="totalSupply">Rp 0</div>
-            <div class="card-sub">Total Fisik Wajib Ada di Brankas</div>
+            <div class="card-sub">Total Fisik Wajib Ada</div>
         </div>
+        
+        <div class="card card-err">
+            <div class="card-title">⚠️ TOKEN PALSU / INJECT</div>
+            <div class="card-val" id="fakeTokenVal">Rp 0</div>
+            <div class="card-sub" id="fakeTokenCount">0 Keping Terdeteksi</div>
+        </div>
+
         <div class="card">
-            <div class="card-title">JUMLAH KOIN/LEMBAR</div>
+            <div class="card-title">JUMLAH KOIN ASLI</div>
             <div class="card-val" id="totalCoins" style="color:var(--accent)">0</div>
-            <div class="card-sub">Keping Token Aktif</div>
+            <div class="card-sub">Keping Token Valid</div>
         </div>
         <div class="card">
             <div class="card-title">JUMLAH PENGGUNA</div>
@@ -76,37 +96,57 @@
 
     <div class="dashboard-split">
         <div class="panel-box">
-            <div class="panel-head">RINCIAN PECAHAN (DENOMINASI)</div>
-            <table id="denomTable">
-                <thead>
-                    <tr>
-                        <th>PECAHAN</th>
-                        <th class="col-right">JUMLAH (Keping)</th>
-                        <th class="col-right">TOTAL NILAI</th>
-                    </tr>
-                </thead>
-                <tbody id="denomBody">
-                    <tr><td colspan="3" style="text-align:center; padding:20px;">Memuat Data...</td></tr>
-                </tbody>
-            </table>
-            <div style="margin-top:20px; height:200px;">
+            <div class="panel-head">RINCIAN PECAHAN</div>
+            <div style="flex-grow:1; overflow-y:auto; max-height:400px;">
+                <table id="denomTable">
+                    <thead>
+                        <tr>
+                            <th>PECAHAN</th>
+                            <th class="col-right">QTY</th>
+                            <th class="col-right">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="denomBody">
+                        <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:10px; height:150px;">
                 <canvas id="denomChart"></canvas>
             </div>
         </div>
 
         <div class="panel-box">
-            <div class="panel-head">SALDO WALLET USER</div>
+            <div class="panel-head">SALDO USER (VALID)</div>
             <input type="text" id="searchWallet" class="search-box" placeholder="Cari ID Wallet..." onkeyup="filterWallet()">
             <div style="max-height: 500px; overflow-y: auto;">
                 <table id="walletTable">
                     <thead>
                         <tr>
                             <th>WALLET ID</th>
-                            <th class="col-right">SALDO RECEH</th>
+                            <th class="col-right">SALDO</th>
                         </tr>
                     </thead>
                     <tbody id="walletBody">
-                        <tr><td colspan="2" style="text-align:center;">Memuat Data...</td></tr>
+                        <tr><td colspan="2" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel-box panel-suspect">
+            <div class="panel-head">🕵️ PEMEGANG TOKEN PALSU</div>
+            <div style="font-size:0.75rem; color:#aaa; margin-bottom:10px;">Daftar wallet yang menyimpan token inject/palsu. (token tidak dapat di scan QR/di gunakan bertransaksi).</div>
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table id="suspectTable">
+                    <thead>
+                        <tr>
+                            <th>WALLET ID</th>
+                            <th class="col-right">NILAI PALSU</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suspectBody">
+                        <tr><td colspan="2" style="text-align:center;">Aman (Kosong)</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -133,19 +173,32 @@
 
     let allWallets = []; // Untuk fitur search
 
+    // --- HELPER: CEK KEASLIAN MINT (SECURE ID CHECK) ---
+    function isGenuineMint(id) {
+        if (!id) return false;
+        // Hanya Hexadecimal (0-9, a-f) dan panjang 15-32 karakter.
+        const hexPattern = /^[a-f0-9]{15,32}$/; 
+        return hexPattern.test(id);
+    }
+
     // --- 2. LOGIKA UTAMA ---
-    // Kita pakai .on() biar Realtime, jadi panelnya gerak sendiri kalau ada transaksi
     db.ref(LEDGER_NODE).on('value', (snapshot) => {
         if(!snapshot.exists()) return;
 
         let totalMoney = 0;
         let totalCoinCount = 0;
         
-        let denomStats = {}; // { 100: {count:5, val:500}, 500: {...} }
-        let walletStats = {}; // { "NW-XXX": 50000, "NW-YYY": 12000 }
+        let denomStats = {}; 
+        let walletStats = {}; 
+        
+        // DATA UNTUK TERSANGKA
+        let fakeCount = 0;
+        let fakeValTotal = 0;
+        let suspectStats = {}; // { "WALLET-ID": total_palsu }
 
         snapshot.forEach((child) => {
             const data = child.val();
+            const coinId = child.key;
             
             // FILTER PENTING: HANYA RECEH
             if (data.type === 'RECEH') {
@@ -153,39 +206,49 @@
                 const owner = data.owner || "UNKNOWN";
 
                 if (val && !isNaN(val)) {
-                    // 1. Hitung Global
-                    totalMoney += val;
-                    totalCoinCount++;
+                    // CEK KEASLIAN TOKEN
+                    if(isGenuineMint(coinId)) {
+                        // === TOKEN ASLI ===
+                        totalMoney += val;
+                        totalCoinCount++;
 
-                    // 2. Hitung Per Pecahan
-                    if (!denomStats[val]) denomStats[val] = { count: 0, sum: 0 };
-                    denomStats[val].count++;
-                    denomStats[val].sum += val;
+                        if (!denomStats[val]) denomStats[val] = { count: 0, sum: 0 };
+                        denomStats[val].count++;
+                        denomStats[val].sum += val;
 
-                    // 3. Hitung Per Wallet
-                    if (!walletStats[owner]) walletStats[owner] = 0;
-                    walletStats[owner] += val;
+                        if (!walletStats[owner]) walletStats[owner] = 0;
+                        walletStats[owner] += val;
+                    } else {
+                        // === TOKEN PALSU/INJECT ===
+                        fakeCount++;
+                        fakeValTotal += val;
+                        
+                        // CATAT TERSANGKA
+                        if (!suspectStats[owner]) suspectStats[owner] = 0;
+                        suspectStats[owner] += val;
+                    }
                 }
             }
         });
 
-        updateUI(totalMoney, totalCoinCount, walletStats, denomStats);
+        updateUI(totalMoney, totalCoinCount, walletStats, denomStats, fakeCount, fakeValTotal, suspectStats);
     });
 
-    function updateUI(totalMoney, totalCoinCount, walletStats, denomStats) {
+    function updateUI(totalMoney, totalCoinCount, walletStats, denomStats, fakeCount, fakeValTotal, suspectStats) {
         // Update KPI Card
         document.getElementById('totalSupply').innerText = "Rp " + totalMoney.toLocaleString('id-ID');
         document.getElementById('totalCoins').innerText = totalCoinCount.toLocaleString('id-ID');
         document.getElementById('totalUsers').innerText = Object.keys(walletStats).length;
 
-        // Update Tabel Pecahan
+        // Update KPI Palsu
+        document.getElementById('fakeTokenVal').innerText = "Rp " + fakeValTotal.toLocaleString('id-ID');
+        document.getElementById('fakeTokenCount').innerText = fakeCount.toLocaleString('id-ID') + " Keping Terdeteksi";
+
+        // --- 1. TABEL PECAHAN ---
         const denomBody = document.getElementById('denomBody');
         denomBody.innerHTML = "";
-        
-        // Sortir pecahan dari kecil ke besar
         const sortedDenoms = Object.keys(denomStats).sort((a,b) => parseInt(a) - parseInt(b));
         
-        // Data untuk Grafik
         let chartLabels = [];
         let chartData = [];
 
@@ -204,11 +267,10 @@
         });
         updateChart(chartLabels, chartData);
 
-        // Update Tabel Wallet
+        // --- 2. TABEL WALLET (ASLI) ---
         const walletBody = document.getElementById('walletBody');
         walletBody.innerHTML = "";
         
-        // Convert object ke array biar bisa disortir (Saldo Terbesar di atas)
         allWallets = Object.keys(walletStats).map(key => ({
             id: key,
             bal: walletStats[key]
@@ -223,6 +285,32 @@
                 </tr>
             `;
         });
+
+        // --- 3. TABEL TERSANGKA (BARU) ---
+        const suspectBody = document.getElementById('suspectBody');
+        suspectBody.innerHTML = "";
+        
+        // Konversi ke array & Sort dari yang terbanyak nyimpen palsu
+        let suspects = Object.keys(suspectStats).map(key => ({
+            id: key,
+            fakeBal: suspectStats[key]
+        }));
+        suspects.sort((a,b) => b.fakeBal - a.fakeBal);
+
+        if(suspects.length === 0) {
+            suspectBody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#555;">Tidak ada aktivitas mencurigakan.</td></tr>`;
+        } else {
+            suspects.forEach(s => {
+                suspectBody.innerHTML += `
+                    <tr>
+                        <td style="color:#ffaaaa;">${s.id}</td>
+                        <td class="col-right">
+                            <span class="suspect-badge">Rp ${s.fakeBal.toLocaleString()}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
     }
 
     // Fitur Search Wallet
@@ -252,7 +340,7 @@
     let myChart = null;
     function updateChart(labels, data) {
         const ctx = document.getElementById('denomChart').getContext('2d');
-        if(myChart) myChart.destroy(); // Hancurkan chart lama biar gak numpuk
+        if(myChart) myChart.destroy(); 
 
         myChart = new Chart(ctx, {
             type: 'bar',

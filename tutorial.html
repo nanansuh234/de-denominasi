@@ -51,7 +51,7 @@
         }
         .step-img {
             width: 100%;
-            max-width: 300px; /* Ukuran gambar dibatasi agar rapi */
+            max-width: 300px;
             height: auto;
             border-radius: 10px;
             border: 1px solid #eee;
@@ -64,6 +64,26 @@
             border-radius: 4px;
             font-weight: bold;
             color: #0d47a1;
+        }
+        
+        /* STYLE TOMBOL NAVIGASI (BARU) */
+        .btn-next {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-top: 30px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(17, 142, 234, 0.3);
+            box-sizing: border-box; /* Biar padding gak ngerusak width */
+        }
+        .btn-next:active {
+            transform: scale(0.98);
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -126,13 +146,13 @@
             <img src="8a.jpeg" alt="Langkah 9" class="step-img">
         </div>
 
-      <div class="step-card">
+        <div class="step-card">
             <span class="step-number">LANGKAH 10</span>
             <div class="step-desc">Gunakan menu <b>QR Saya</b> untuk menerima dana atau token dari pengguna lain.</div>
             <img src="9a.jpeg" alt="Langkah 10" class="step-img">
         </div>
 
-        <a href="tutorial_part2.html" class="btn-next">SELANJUTNYA: FITUR LANJUTAN ➤</a>
+        <a href="tutorial2.html" class="btn-next">SELANJUTNYA: FITUR LANJUTAN ➤</a>
 
         <div style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 20px;">
             &copy; 2026 Sunda Nuswantara Wallet
@@ -140,7 +160,4 @@
     </div>
 
 </body>
-
 </html>
-
-

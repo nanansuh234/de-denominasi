@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial Part 2 - SN Wallet</title>
+    <style>
+        :root {
+            --primary: #118eea;
+            --primary-dark: #0b6ab0;
+            --bg: #f5f6f8;
+            --text: #333;
+            --gold: #d4af37;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        h2 {
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+            margin-top: 30px;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 5px;
+            width: 100%;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        .step-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--gold);
+        }
+        .step-title {
+            font-weight: 800;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .step-desc {
+            margin-bottom: 15px;
+            line-height: 1.5;
+            color: #555;
+        }
+        .step-img {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            display: block;
+            margin: 0 auto;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #856404;
+        }
+        .btn-back {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-top: 40px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>PANDUAN LANJUTAN (PART 2)</h1>
+        <div class="subtitle">Transaksi Offline, Token, Audit & Monitoring</div>
+
+        <h2>1. MANAJEMEN ASET & KOIN</h2>
+
+        <div class="step-card">
+            <span class="step-title">RINCIAN KOIN</span>
+            <div class="step-desc">
+                Setiap saldo Anda terdiri dari kepingan koin unik. Anda bisa melihat pecahan apa saja yang Anda miliki (Rp 100, Rp 200, dst) beserta kode uniknya (Hash ID).
+            </div>
+            <img src="11a.jpeg" alt="Grid Koin" class="step-img">
+        </div>
+
+        <div class="step-card">
+            <span class="step-title">RIWAYAT TRANSAKSI</span>
+            <div class="step-desc">
+                Pantau pergerakan dana masuk dan keluar secara <i>real-time</i>. Riwayat ini mencatat tanggal, jam, dan nominal transaksi.
+            </div>
+            <img src="12a.jpeg" alt="Riwayat Transaksi" class="step-img">
+        </div>
+
+        <h2>2. TRANSAKSI KHUSUS (OFFLINE)</h2>
+
+        <div class="step-card">
+            <span class="step-title">A. MENU TRANSAKSI KOIN</span>
+            <div class="step-desc">
+                Klik salah satu koin di dompet Anda, lalu pilih <span class="highlight">CETAK / TAMPILKAN QR</span>. Ini berguna untuk transaksi tanpa internet (Offline) atau memberikan uang fisik digital.
+            </div>
+            <img src="15a.jpeg" alt="Menu Transaksi" class="step-img">
+        </div>
+
+        <div class="step-card">
+            <span class="step-title">B. QR TOKEN (UANG FISIK)</span>
+            <div class="step-desc">
+                Tunjukkan QR ini ke penerima untuk di-scan. <br><b>PERHATIAN:</b> Siapapun yang scan QR ini akan otomatis MENGAMBIL saldo tersebut. QR hanya berlaku 1x scan.
+            </div>
+            <img src="16a.jpeg" alt="QR Token" class="step-img">
+        </div>
+
+        <div class="step-card">
+            <span class="step-title">C. TOKEN TEKS (COPY-PASTE)</span>
+            <div class="step-desc">
+                Alternatif jika kamera rusak. Pilih menu <b>Lainnya > Generate Token</b>. Salin kode teks yang muncul dan kirim via Chat (WA/Telegram) ke penerima.
+            </div>
+            <img src="10a.jpeg" alt="Token Teks" class="step-img">
+        </div>
+
+        <h2>3. AUDIT & TRANSPARANSI</h2>
+
+        <div class="step-card">
+            <span class="step-title">CEK TOTAL SUPPLY</span>
+            <div class="step-desc">
+                Klik tombol <b>(?)</b> di pojok kanan atas, lalu pilih <span class="highlight">TOTAL RECEH BEREDAR</span>. Sistem akan menghitung total uang yang sah di seluruh jaringan.
+            </div>
+            <img src="13a.jpeg" alt="Menu Info" class="step-img">
+        </div>
+
+        <div class="step-card">
+            <span class="step-title">HASIL AUDIT</span>
+            <div class="step-desc">
+                Muncul angka total (contoh: <b>Rp 1.020.000</b>). Angka ini menjamin tidak ada inflasi atau pencetakan uang diam-diam oleh Admin. Transparan!
+            </div>
+            <img src="14a.jpeg" alt="Hasil Audit" class="step-img">
+        </div>
+
+        <h2>4. PANEL MONITORING (ADMIN)</h2>
+
+        <div class="step-card">
+            <span class="step-title">DASHBOARD EKONOMI</span>
+            <div class="step-desc">
+                Admin memantau kesehatan ekonomi lewat panel ini.
+                <ul>
+                    <li><b>GUDANG MINT:</b> Uang cadangan yang belum beredar.</li>
+                    <li><b>USER (NW-...):</b> Uang yang sedang dipegang warga.</li>
+                </ul>
+            </div>
+            <img src="19a.jpeg" alt="Dashboard Monitor" class="step-img">
+        </div>
+
+        <div class="step-card">
+            <span class="step-title">ANALISA PECAHAN</span>
+            <div class="step-desc">
+                Grafik ini menunjukkan pecahan mana yang paling banyak beredar (contoh: Rp 1.000 paling mendominasi). Data ini penting untuk kebijakan pencetakan uang baru.
+            </div>
+            <img src="17a.jpeg" alt="Grafik Pecahan" class="step-img">
+        </div>
+
+        <div class="step-card">
+            <span class="step-title">STATISTIK DETAIL</span>
+            <div class="step-desc">
+                Grafik batang mempermudah visualisasi jumlah keping per denominasi (100, 200, 500, 1000) yang ada di tangan masyarakat.
+            </div>
+            <img src="18a.jpeg" alt="Grafik Batang" class="step-img">
+        </div>
+
+        <a href="tutorial.html" class="btn-back">KEMBALI KE PART 1</a>
+
+        <div style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 20px;">
+            &copy; 2026 Sunda Nuswantara Wallet
+        </div>
+    </div>
+
+</body>
+</html>
